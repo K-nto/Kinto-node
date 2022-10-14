@@ -1,5 +1,11 @@
 export interface Configuration {
   wallet: string;
-  nodeId: string;
-  storageSize: number;
+  entityId: string;
+  contributedSpace: number;
+  alias?: string;
+  createdDate: string;
+  latestUpdateDate?: string;
+  userAvailableSpace: number;
+  confidence?: number;
+  status?: string;
 }

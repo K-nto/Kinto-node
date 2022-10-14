@@ -20,7 +20,7 @@ const registerNode = async (): Promise<string> => {
       'http://localhost:3001/users/' + configuration.wallet + '/nodes';
 
     const response: AxiosResponse = await axios.post(url, {
-      storage: configuration.storageSize,
+      storage: configuration.contributedSpace,
     });
     console.log(
       '[INFO] Node registered successfuly, entity id: ',
@@ -58,13 +58,15 @@ console.log(
 );
 
 let setup = true;
-let nodeId = configuration.nodeId;
+let nodeId = configuration.entityId;
 
 // Schedule tasks to be run on the server.
 cron.schedule('* * * * *', async () => {
   if (setup) {
     setup = false;
-    nodeId = configuration.nodeId ? configuration.nodeId : await registerNode();
+    nodeId = configuration.entityId
+      ? configuration.entityId
+      : await registerNode();
     console.log('[SETUP] Wallet: ', configuration.wallet);
     console.log('[SETUP] Node Id: ', nodeId);
 
