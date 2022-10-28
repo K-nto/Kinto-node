@@ -1,11 +1,9 @@
 export interface Configuration {
-  wallet: string;
-  entityId: string;
-  contributedSpace: number;
   alias?: string;
+  entityId: string;
   createdDate: string;
+  contributedSpace: number;
   latestUpdateDate?: string;
-  userAvailableSpace: number;
-  confidence?: number;
-  status?: string;
+  nodeServiceURL: string; //TODO
+  wallet: string;
 }

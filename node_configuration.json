@@ -1,8 +1,8 @@
 {
-  "entityId": "01GFC2E2BN91DS8CSKQKSFPWFT",
-  "wallet": "asd123",
   "alias": "FE 1",
+  "entityId": "01GFC2E2BN91DS8CSKQKSFPWFT",
   "createdDate": "2022-10-14T20:19:40.533Z",
   "contributedSpace": 100,
-  "userAvailableSpace": 25
+  "nodeServiceURL": "http://localhost:3001",
+  "wallet": "asd123"
 }
