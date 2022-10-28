@@ -27,11 +27,8 @@
 - [About the Project](#star2-about-the-project)
   - [Tech Stack](#space_invader-tech-stack)
   - [Features](#dart-features)
-- [Getting Started](#toolbox-getting-started)
+- [Setup](#Setup)
   - [Prerequisites](#bangbang-prerequisites)
-  - [Installation](#gear-installation)
-  - [Run Locally](#running-run-locally)
-  - [Deployment](#triangular_flag_on_post-deployment)
 - [Usage](#eyes-usage)
 - [License](#warning-license)
 - [Contact](#handshake-contact)
@@ -57,6 +54,7 @@ This agent is connected to Kinto IPFS network on behalf of a wallet owner and pr
   - Storage: IPFS
   - Blockchain: Hyperlerdger
 - Proof of activty
+- Automatic setup
 
 ## :toolbox: Setup
 
@@ -69,7 +67,7 @@ This project uses node and npm as package manager, make sure it is installed.
  npm -v
 ```
 
-## :eyes: Usage
+## :gear: Usage
 
 Clone the project
 
@@ -81,12 +79,6 @@ Go to the project directory
 
 ```bash
   cd Kinto-node
-```
-
-Install dependencies
-
-```bash
-  npm install
 ```
 
 Add the `node_configuration.json` file to `Kinto-node` folder , example of configuration file:
@@ -108,7 +100,7 @@ Add the `node_configuration.json` file to `Kinto-node` folder , example of confi
 Start the agent.
 
 ```bash
-  npm run start
+  sh run.sh
 ```
 
 ## :warning: License
