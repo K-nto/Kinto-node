@@ -54,42 +54,40 @@ const getIpfsConfiguration = async (): Promise<IPFSNetworkConfiguration> => {
       nodeConfiguration.nodeServiceURL +
       '/users/' +
       nodeConfiguration.wallet +
-      '/nodes/ipfs';
+      '/networkConfiguration';
 
     const response: AxiosResponse = await axios.get(url);
-    logger.debug('Fetched configuration successfuly');
+    logger.debug('Fetched configuration successfuly', response.data);
 
     return response.data;
   } catch (error: any) {
     logger.warn('get ipfs configuration - ', error.message);
   }
   logger.debug('Using default ipfs network configuration');
+  const repoDir = path.join(os.tmpdir(), `repo-1`);
   return {
-    Addresses: {
-      Swarm: [`/ip4/0.0.0.0/tcp/0`, `/ip4/127.0.0.1/tcp/0/ws`],
-      API: `/ip4/127.0.0.1/tcp/0`,
-      Gateway: `/ip4/127.0.0.1/tcp/0`,
-      RPC: `/ip4/127.0.0.1/tcp/0`,
-    },
-  };
+    repo: repoDir,
+    config: {
+      Addresses: {
+        Swarm: [`/ip4/0.0.0.0/tcp/0`, `/ip4/127.0.0.1/tcp/0/ws`],
+        API: `/ip4/127.0.0.1/tcp/0`,
+        Gateway: `/ip4/127.0.0.1/tcp/0`,
+        RPC: `/ip4/127.0.0.1/tcp/0`,
+      },
+      Bootstrap: [],
+    }
+  }
 };
 
 logger.log(
   '                                                                                \n                            /////                                               \n          /////     /////   /////                       ,//                     \n          /////    /////                              /////                     \n          /////   /////     /////   //// ////////   //////////    //////////    \n          ///////////       /////    //////  /////    /////     /////   /////   \n          /////  /////      /////    /////   /////    /////     ////*   *////.  \n          ////*.../////.    /////    /////   /////    /////     /////   *////   \n    ...,,,,,,,,,,,,,/////   /////.   /////   /////    /////,.,. ////// ,/////   \n .,.,,,,,,,,,,,,,,,,,(/////,,//////,,/////,,,/////,,,,,////////,,,/////////,,.  \n    .,,,,,,,,,,,,,,,,,,,,,                                                       \n      .,,,,,,,,,,,.                                                           \n                 \n'
 );
 
-const repoDir = path.join(os.tmpdir(), `repo-1`);
 
 getIpfsConfiguration()
   .then(
     async ipfsNetworkConfiguration =>
-      await IPFS.create({
-        repo: repoDir,
-        config: {
-          Addresses: ipfsNetworkConfiguration.Addresses,
-          Bootstrap: [],
-        },
-      })
+      await IPFS.create()
   )
   .then(async () => {
     logger.info('Setting up node...');

@@ -1,8 +1,12 @@
 export interface IPFSNetworkConfiguration {
-  Addresses: {
-    Swarm: string[];
-    API: string;
-    Gateway: string;
-    RPC: string;
-  };
+  repo: string;
+  config: {
+    Addresses: {
+      Swarm: string[];
+      API: string;
+      Gateway: string;
+      RPC: string;
+    };
+    Bootstrap: any[]
+  }
 }
