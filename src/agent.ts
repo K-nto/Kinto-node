@@ -17,36 +17,6 @@ if (!nodeConfiguration) {
   exit();
 }
 
-/**
- * @name registerNode
- * @description Sends request to register node into kinto node storage service.
- * @returns Registered Node Id
- */
-const registerNode = async (): Promise<string> => {
-  logger.info(' Registering node');
-  try {
-    const url =
-      nodeConfiguration.nodeServiceURL +
-      '/users/' +
-      nodeConfiguration.wallet +
-      '/nodes';
-
-    const response: AxiosResponse = await axios.post(url, {
-      storage: nodeConfiguration.contributedSpace,
-    });
-    logger.info(
-      'Node registered successfuly, entity id: ',
-      response.data.entityId,
-      ' - node: ',
-      response.data
-    );
-
-    return response.data.entityId;
-  } catch (error: any) {
-    logger.error('Register Node - ', error.message);
-  }
-  return '';
-};
 
 /**
  * @name sendStatus
@@ -108,7 +78,6 @@ logger.log(
   '                                                                                \n                            /////                                               \n          /////     /////   /////                       ,//                     \n          /////    /////                              /////                     \n          /////   /////     /////   //// ////////   //////////    //////////    \n          ///////////       /////    //////  /////    /////     /////   /////   \n          /////  /////      /////    /////   /////    /////     ////*   *////.  \n          ////*.../////.    /////    /////   /////    /////     /////   *////   \n    ...,,,,,,,,,,,,,/////   /////.   /////   /////    /////,.,. ////// ,/////   \n .,.,,,,,,,,,,,,,,,,,(/////,,//////,,/////,,,/////,,,,,////////,,,/////////,,.  \n    .,,,,,,,,,,,,,,,,,,,,,                                                       \n      .,,,,,,,,,,,.                                                           \n                 \n'
 );
 
-let nodeId = nodeConfiguration.entityId;
 const repoDir = path.join(os.tmpdir(), `repo-1`);
 
 getIpfsConfiguration()
@@ -124,11 +93,10 @@ getIpfsConfiguration()
   )
   .then(async () => {
     logger.info('Setting up node...');
-    nodeId = nodeConfiguration.entityId ?? (await registerNode());
     logger.debug('Wallet: ', nodeConfiguration.wallet);
-    logger.debug('Node: ', nodeId, ' - ', nodeConfiguration.alias);
+    logger.debug('Node: ', nodeConfiguration.entityId, ' - ', nodeConfiguration.alias ?? "");
 
     logger.info('[START] Kinto node service running...');
     // Schedule tasks to be run on the server.
-    cron.schedule('* * * * *', async () => await sendStatus(nodeId));
+    cron.schedule('* * * * *', async () => await sendStatus(nodeConfiguration.entityId));
   });
