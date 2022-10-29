@@ -35,7 +35,7 @@ const sendStatus = async (kintoNodeID: string): Promise<void> => {
 
     const response: AxiosResponse = await axios.patch(url);
 
-    logger.debug('] Node updated successfuly:', response.data);
+    logger.debug('Node updated successfuly:', response.data);
   } catch (error: any) {
     logger.warn('Send status failed -', error);
   }
