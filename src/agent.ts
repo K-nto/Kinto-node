@@ -1,100 +1,76 @@
 import cron from 'node-cron';
 import axios, {AxiosResponse} from 'axios';
+import configurationsJson from '../node_configuration.json';
 import {exit} from 'process';
 import {Configuration} from './nodeConfiguration.interface';
-import {IPFSNetworkConfiguration} from './IPFSConfig.interface';
-import * as IPFS from 'ipfs';
-import path from 'path';
-import os from 'os';
-import logger from 'node-color-log';
-import fs from 'fs';
 
-const nodeConfiguration: Configuration = JSON.parse(
-  fs.readFileSync('./node_configuration.json', 'utf8')
-);
-if (!nodeConfiguration) {
-  logger.error(' NO CONFIGURATION FILE');
+require('dotenv').config();
+
+if (!configurationsJson) {
+  console.log('[ERROR] NO CONFIGURATION FILE');
   exit();
 }
 
+const BASE_URL = 'http://144.22.182.162:3001';
 
-/**
- * @name sendStatus
- * @description  send status to kinto node storage service.
- * @param (kintoNodeID) node id
- */
+const configuration: Configuration =
+  configurationsJson as unknown as Configuration;
+
+const registerNode = async (): Promise<string> => {
+  console.log('[INFO] Registering node');
+  try {
+    const url = BASE_URL + '/users/' + configuration.wallet + '/nodes';
+
+    const response: AxiosResponse = await axios.post(url, {
+      storage: configuration.storageSize,
+    });
+    console.log(
+      '[INFO] Node registered successfuly, entity id: ',
+      response.data.entityId,
+      ' - node: ',
+      response.data
+    );
+
+    return response.data.entityId;
+  } catch (error: any) {
+    console.log('[ERROR]', error.message);
+  }
+  return '';
+};
+
 const sendStatus = async (kintoNodeID: string): Promise<void> => {
-  logger.info(' Sending update...');
+  console.log('[INFO] Sending update...');
   try {
     const url =
-      nodeConfiguration.nodeServiceURL +
-      '/users/' +
-      nodeConfiguration.wallet +
-      '/nodes/' +
-      kintoNodeID;
+      BASE_URL + '/users/' + configuration.wallet + '/nodes/' + kintoNodeID;
 
     const response: AxiosResponse = await axios.patch(url);
 
-    logger.debug('Node updated successfuly:', response.data);
+    console.log('[DEBUG] Node updated successfuly:', response.data);
   } catch (error: any) {
-    logger.warn('Send status failed -', error);
+    console.log('[ERROR]', error);
   }
 };
 
-/**
- * @name getIpfsConfiguration
- * @description gets ipfs configuration from kinto node service.
- * @param
- * @returns Kinto ipfs network configs
- */
-const getIpfsConfiguration = async (): Promise<IPFSNetworkConfiguration> => {
-  logger.info('getting IPFS Configuration...');
-  try {
-    const url =
-      nodeConfiguration.nodeServiceURL +
-      '/users/' +
-      nodeConfiguration.wallet +
-      '/networkConfiguration';
-
-    const response: AxiosResponse = await axios.get(url);
-    logger.debug('Fetched configuration successfuly', response.data);
-
-    return response.data;
-  } catch (error: any) {
-    logger.warn('get ipfs configuration - ', error.message);
-  }
-  logger.debug('Using default ipfs network configuration');
-  const repoDir = path.join(os.tmpdir(), `repo-1`);
-  return {
-    repo: repoDir,
-    config: {
-      Addresses: {
-        Swarm: [`/ip4/0.0.0.0/tcp/0`, `/ip4/127.0.0.1/tcp/0/ws`],
-        API: `/ip4/127.0.0.1/tcp/0`,
-        Gateway: `/ip4/127.0.0.1/tcp/0`,
-        RPC: `/ip4/127.0.0.1/tcp/0`,
-      },
-      Bootstrap: [],
-    }
-  }
-};
-
-logger.log(
+console.log(
   '                                                                                \n                            /////                                               \n          /////     /////   /////                       ,//                     \n          /////    /////                              /////                     \n          /////   /////     /////   //// ////////   //////////    //////////    \n          ///////////       /////    //////  /////    /////     /////   /////   \n          /////  /////      /////    /////   /////    /////     ////*   *////.  \n          ////*.../////.    /////    /////   /////    /////     /////   *////   \n    ...,,,,,,,,,,,,,/////   /////.   /////   /////    /////,.,. ////// ,/////   \n .,.,,,,,,,,,,,,,,,,,(/////,,//////,,/////,,,/////,,,,,////////,,,/////////,,.  \n    .,,,,,,,,,,,,,,,,,,,,,                                                       \n      .,,,,,,,,,,,.                                                           \n                 \n'
 );
 
+let setup = true;
+let nodeId = configuration.entityId;
 
-getIpfsConfiguration()
-  .then(
-    async ipfsNetworkConfiguration =>
-      await IPFS.create()
-  )
-  .then(async () => {
-    logger.info('Setting up node...');
-    logger.debug('Wallet: ', nodeConfiguration.wallet);
-    logger.debug('Node: ', nodeConfiguration.entityId, ' - ', nodeConfiguration.alias ?? "");
+// Schedule tasks to be run on the server.
+cron.schedule('* * * * *', async () => {
+  if (setup) {
+    setup = false;
+    nodeId = configuration.entityId
+      ? configuration.entityId
+      : await registerNode();
+    console.log('[SETUP] Wallet: ', configuration.wallet);
+    console.log('[SETUP] Node Id: ', nodeId);
 
-    logger.info('[START] Kinto node service running...');
-    // Schedule tasks to be run on the server.
-    cron.schedule('* * * * *', async () => await sendStatus(nodeConfiguration.entityId));
-  });
+    console.log('[START] Kinto node service running...');
+  }
+
+  sendStatus(nodeId);
+});
