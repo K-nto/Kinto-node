@@ -1,28 +1,27 @@
 import cron from 'node-cron';
 import axios, {AxiosResponse} from 'axios';
-import configurationsJson from '../node_configuration.json';
+
 import {exit} from 'process';
 import {Configuration} from './nodeConfiguration.interface';
+import fs from 'fs';
 
-require('dotenv').config();
+const nodeConfiguration: Configuration = JSON.parse(
+  fs.readFileSync('./node_configuration.json', 'utf8')
+);
 
-if (!configurationsJson) {
+if (!nodeConfiguration) {
   console.log('[ERROR] NO CONFIGURATION FILE');
   exit();
 }
 
-const BASE_URL = 'http://144.22.182.162:3001';
-
-const configuration: Configuration =
-  configurationsJson as unknown as Configuration;
-
+const BASE_URL = 'http://144.22.182.162:3001'; 
 const registerNode = async (): Promise<string> => {
   console.log('[INFO] Registering node');
   try {
-    const url = BASE_URL + '/users/' + configuration.wallet + '/nodes';
+    const url = BASE_URL + '/users/' + nodeConfiguration.wallet + '/nodes';
 
     const response: AxiosResponse = await axios.post(url, {
-      storage: configuration.storageSize,
+      storage: nodeConfiguration.storageSize,
     });
     console.log(
       '[INFO] Node registered successfuly, entity id: ',
@@ -42,7 +41,7 @@ const sendStatus = async (kintoNodeID: string): Promise<void> => {
   console.log('[INFO] Sending update...');
   try {
     const url =
-      BASE_URL + '/users/' + configuration.wallet + '/nodes/' + kintoNodeID;
+      BASE_URL + '/users/' + nodeConfiguration.wallet + '/nodes/' + kintoNodeID;
 
     const response: AxiosResponse = await axios.patch(url);
 
@@ -57,16 +56,16 @@ console.log(
 );
 
 let setup = true;
-let nodeId = configuration.entityId;
+let nodeId = nodeConfiguration.entityId;
 
 // Schedule tasks to be run on the server.
 cron.schedule('* * * * *', async () => {
   if (setup) {
     setup = false;
-    nodeId = configuration.entityId
-      ? configuration.entityId
+    nodeId = nodeConfiguration.entityId
+      ? nodeConfiguration.entityId
       : await registerNode();
-    console.log('[SETUP] Wallet: ', configuration.wallet);
+    console.log('[SETUP] Wallet: ', nodeConfiguration.wallet);
     console.log('[SETUP] Node Id: ', nodeId);
 
     console.log('[START] Kinto node service running...');
